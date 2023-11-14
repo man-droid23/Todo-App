@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shopping_app/data/database.dart';
 import 'package:shopping_app/widget/dialog_box.dart';
 import 'package:shopping_app/widget/todo_list.dart';
 
@@ -10,16 +12,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final myTodos = Hive.box('todo');
   final TextEditingController controller = TextEditingController();
-  List toDoList = [
-    ['Buy Milk', false],
-    ['Buy Eggs', false],
-  ];
+  ToDoDatabase db = ToDoDatabase();
+
+  @override
+  void initState() {
+    if (myTodos.get('todoList') == null){
+      db.createInitialDatabase();
+    } else {
+      db.loadData();
+    }    
+    super.initState();
+  }
 
   void checkBoxChanged(bool? value, int index) {
     setState(() {
-      toDoList[index][1] = !toDoList[index][1];
+      db.toDoList[index][1] = !db.toDoList[index][1];
     });
+    db.updateData();
   }
 
   void createTask() {
@@ -30,10 +41,11 @@ class _HomePageState extends State<HomePage> {
             control: controller,
             onSave: () {
               setState(() {
-                toDoList.add([controller.text, false]);
+                db.toDoList.add([controller.text, false]);
                 controller.clear();
               });
               Navigator.pop(context);
+              db.updateData();
             },
             onCancel: () => Navigator.pop(context),
           );
@@ -50,15 +62,16 @@ class _HomePageState extends State<HomePage> {
           elevation: 0,
         ),
         body: ListView.builder(
-          itemCount: toDoList.length,
+          itemCount: db.toDoList.length,
           itemBuilder: (context, index) {
             return ToDoList(
-              taskName: toDoList[index][0],
-              isDone: toDoList[index][1],
+              taskName: db.toDoList[index][0],
+              isDone: db.toDoList[index][1],
               onChanged: (value) => checkBoxChanged(value, index),
               onDelete: () {
                 setState(() {
-                  toDoList.removeAt(index);
+                  db.toDoList.removeAt(index);
+                  db.updateData();
                 });
               },
             );

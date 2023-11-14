@@ -39,11 +39,9 @@ class ToDoList extends StatelessWidget {
             ),
             Expanded(
               flex: 0,
-              child: Container(
-                child: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: onDelete,
-                ),
+              child: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: onDelete,
               ),
             ),
           ],
